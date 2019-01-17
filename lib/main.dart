@@ -57,10 +57,13 @@ class _MyHomePageState extends State<MyHomePage> {
     return StreamBuilder<fb.QuerySnapshot>(
       stream: fb.Firestore.instance.collection("baby").snapshots(),
       builder: (context, snapshot) {
+        print(">> sb");
         if(!snapshot.hasData) {
+          print(">> sb 1");
           return LinearProgressIndicator();
         } else {
-          return _buildListWithSnaposhot(context, snapshot.data.documents);
+          print(">> sb 2");
+          return _buildListWithSnapshot(context, snapshot.data.documents);
         }
       },
     );
@@ -70,11 +73,14 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildListWithMao(BuildContext, List<Map> snapshot) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
-      children: snapshot.map((data) => _buildListItem(context, Record.fromMap(data))).toList(),
+      children: snapshot.map((data) {
+        print(">> ${data}");
+        _buildListItem(context, Record.fromMap(data));
+      }).toList(),
     );
   }
 
-  Widget _buildListWithSnaposhot(BuildContext, List<fb.DocumentSnapshot> snapshot) {
+  Widget _buildListWithSnapshot(BuildContext context, List<fb.DocumentSnapshot> snapshot) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
       children: snapshot.map((data) => _buildListItem(context, Record.fromSnapshot(data))).toList(),
@@ -82,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildListItem(BuildContext context,Record record) {
-
+    print(">>_bli");
     return Padding(
         key: ValueKey(record.name),
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -94,9 +100,22 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ListTile(
             title: Text(record.name),
             trailing: Text(record.votes.toString()),
-            onTap: ()=> print(record),
+
+            onTap: (){
+              print(record);
+              record.reference.updateData({'votes': record.votes + 1});
+            }
+            /*
+            onTap:()=>
+            fb.Firestore.instance.runTransaction((transaction) async {
+              print("--1");
+              fb.DocumentSnapshot fs = await transaction.get(record.reference);
+              Record r = Record.fromSnapshot(fs);
+              await transaction.update(r.reference, {'votes': r.votes + 1});
+              print("--2");
+            })*/,
           ),
-        ),
+        )
     );
   }
 
