@@ -54,19 +54,35 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildBody(BuildContext context) {
-    return _buildList(context, dummySnapshot);
+    return StreamBuilder<fb.QuerySnapshot>(
+      stream: fb.Firestore.instance.collection("baby").snapshots(),
+      builder: (context, snapshot) {
+        if(!snapshot.hasData) {
+          return LinearProgressIndicator();
+        } else {
+          return _buildListWithSnaposhot(context, snapshot.data.documents);
+        }
+      },
+    );
+
   }
 
-  Widget _buildList(BuildContext, List<Map> snapshot) {
+  Widget _buildListWithMao(BuildContext, List<Map> snapshot) {
     return ListView(
       padding: const EdgeInsets.only(top: 20.0),
-      children: snapshot.map((data) => _buildListItem(context, data)).toList(),
+      children: snapshot.map((data) => _buildListItem(context, Record.fromMap(data))).toList(),
     );
   }
 
-  Widget _buildListItem(BuildContext context,Map data) {
-    final record = Record.fromMap(data);
-    
+  Widget _buildListWithSnaposhot(BuildContext, List<fb.DocumentSnapshot> snapshot) {
+    return ListView(
+      padding: const EdgeInsets.only(top: 20.0),
+      children: snapshot.map((data) => _buildListItem(context, Record.fromSnapshot(data))).toList(),
+    );
+  }
+
+  Widget _buildListItem(BuildContext context,Record record) {
+
     return Padding(
         key: ValueKey(record.name),
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
